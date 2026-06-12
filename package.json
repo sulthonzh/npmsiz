@@ -1,0 +1,15 @@
+{
+  "name": "npmsiz",
+  "version": "1.0.0",
+  "description": "Analyze what's bloating your npm package before you publish",
+  "main": "index.js",
+  "bin": {
+    "npmsiz": "./cli.js"
+  },
+  "keywords": ["npm", "package", "size", "bloat", "publish", "analyze"],
+  "author": "sulthonzh",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14"
+  }
+}

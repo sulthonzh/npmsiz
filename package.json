@@ -1,15 +1,19 @@
 {
   "name": "npmsiz",
   "version": "1.0.0",
-  "description": "Analyze what's bloating your npm package before you publish",
-  "main": "index.js",
+  "description": "Analyze what's bloating your npm package before you publish. Zero dependencies.",
+  "main": "src/index.js",
   "bin": {
-    "npmsiz": "./cli.js"
+    "npmsiz": "./src/cli.js"
   },
-  "keywords": ["npm", "package", "size", "bloat", "publish", "analyze"],
+  "scripts": {
+    "test": "node test/index.test.js"
+  },
+  "keywords": ["npm", "package", "size", "bundle", "analyze", "publish"],
   "author": "sulthonzh",
   "license": "MIT",
   "engines": {
-    "node": ">=14"
-  }
+    "node": ">=16"
+  },
+  "files": ["src"]
 }

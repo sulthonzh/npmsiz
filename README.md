@@ -1,87 +1,92 @@
 # npmsiz
 
-Analyze what's bloating your npm package before you publish.
+Analyze what's bloating your npm package before you publish. Zero dependencies.
 
-## Why?
-
-Ever published a package and realized it was 10x bigger than expected? Tests, configs, source maps, `.DS_Store` files — they all sneak in. `npmsiz` scans your package the same way `npm publish` would and tells you exactly what's going to ship.
+Ever run `npm publish` and realize your tiny library is 5MB? Yeah. This tool catches that before it happens.
 
 ## Install
 
 ```bash
 npm install -g npmsiz
+# or run directly
+npx npmsiz
 ```
 
-Or use without installing:
-
-```bash
-npx npmsiz ./my-package
-```
-
-## Usage
+## Use
 
 ```bash
 # Analyze current directory
 npmsiz
 
 # Analyze a specific package
-npmsiz ./path/to/package
+npmsiz ./my-package
+
+# Full analysis (ignore "files" field, show directory breakdown)
+npmsiz --full --dirs
+
+# Show top 20 largest files
+npmsiz --top 20
 ```
 
-## Example Output
+## What it does
+
+- **Scans your package** using the `files` field from package.json (same rules npm uses)
+- **Breaks down size by file extension** with a visual bar chart
+- **Lists the largest files** so you know what's eating space
+- **Detects common bloat**: test files, media assets, missing .npmignore, duplicate files
+- **Warns about missing package.json fields** (repository, license, etc.)
+
+## Example output
 
 ```
-🟢 my-lib@2.1.0 — LEAN
-   12 files | 45.2 KB raw | 12.8 KB gzipped
+📦 my-lib@1.2.3
+   24 files · 187.3 KB
 
-📦 Top files by size:
-   ████████████████████ 18.5KB — dist/index.js
-   ██████████ 9.2KB — dist/utils.js
-   ████ 3.1KB — README.md
-   ██ 1.8KB — package.json
-   █ 0.9KB — LICENSE
+By extension:
+  .js  ████████████████████████████░░  82.3%  (154.1 KB, 18 files)
+  .d.ts ████░░░░░░░░░░░░░░░░░░░░░░░░  12.1%  (22.6 KB, 4 files)
+  .json ██░░░░░░░░░░░░░░░░░░░░░░░░░░   5.6%  (10.5 KB, 2 files)
 
-✨ Package looks lean — good to publish!
+Top 10 largest files:
+     85.2 KB   56.2%  src/bundle.js
+     22.1 KB   14.5%  src/index.d.ts
+      8.3 KB    5.5%  src/utils.js
+
+Issues:
+  ⚠️  Large file: src/bundle.js (85.2 KB)
+  💡 No "files" field in package.json — npm will include everything
+
+✅ Package looks publishable, 1 warning(s) to consider
 ```
 
-## What It Checks
+## Why
 
-- **Bloat patterns**: Test files, source maps, configs, IDE files that shouldn't ship
-- **File sizes**: Flags individual files over 50KB (warn) or 200KB (error)
-- **Total size**: Warns if package is over 500KB, errors at 5MB
-- **Gzip estimate**: Shows compressed size so you know what users actually download
-- **Missing publish config**: Detects if you're missing `files` or `.npmignore`
+I got tired of publishing packages and finding out later they were 10x larger than expected. Most of the time it was a test file, a stray asset, or forgetting the `files` field. This catches all of that in one command.
 
-## Verdicts
+## API
 
-| Verdict | Meaning |
-|---------|---------|
-| 🟢 LEAN | Package is clean and small |
-| 🟡 CHUBBY | Some unnecessary files, worth cleaning up |
-| 🔴 BLOATED | Too big, fix before publishing |
+```javascript
+const { analyze, formatReport } = require('npmsiz');
 
-## How It Works
+const result = analyze('./my-package');
+console.log(formatReport(result));
 
-1. Reads your `package.json` — respects the `files` field if present
-2. Falls back to `.npmignore` if no `files` field
-3. Scans all files that would be included in `npm publish`
-4. Checks each file against bloat patterns and size thresholds
-5. Estimates gzip size for the full package
-6. Exits with code 1 if bloated (useful in CI)
-
-## CI Integration
-
-```yaml
-# GitHub Actions
-- name: Check package size
-  run: npx npmsiz .
+// Access raw data
+result.totalSize;      // bytes
+result.fileCount;      // number
+result.byExtension;    // [{ extension, totalSize, count }]
+result.byDirectory;    // [{ directory, totalSize, count }]
+result.largest;        // [{ relativePath, size }]
+result.issues;         // [{ type, severity, message }]
 ```
 
-The command exits with code 1 if the package is bloated, so your CI will fail if things get too big.
+## Options
 
-## Zero Dependencies
-
-No external dependencies. Uses only Node.js built-in modules (`fs`, `path`, `zlib`).
+| Flag | Description |
+|------|-------------|
+| `--full` | Analyze all files, ignore `files` field |
+| `--dirs` | Show directory breakdown |
+| `--top N` | Show top N largest files (default 10) |
 
 ## License
 
